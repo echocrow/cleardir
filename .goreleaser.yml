@@ -1,0 +1,40 @@
+project_name: cleardir
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: darwin-build
+    main: ./main.go
+    env: [CGO_ENABLED=1]
+    goos: [darwin]
+    goarch: [amd64]
+
+archives:
+  - id: darwin-build
+    builds: [darwin-build]
+    replacements:
+      darwin: Darwin
+      amd64: x86_64
+
+brews:
+  - ids: [darwin-build]
+    tap:
+      owner: echocrow
+      name: homebrew-tap
+    folder: Formula
+
+    homepage: '{{ replace .GitURL ".git" "" }}'
+    description: Clear empty directories and dispensable files.
+    license: LGPL-3.0-or-later
+
+    caveats: |
+      By default cleardir will only clear fully empty directories.
+
+      If you'd also like to clear certain files (e.g. ".DS_Store"), add them to
+      the whitelist:
+        echo -n '.DS_Store' > "$(cleardir --config '?')"
+
+    test: |
+      system "#{bin}/cleardir", "--version"
